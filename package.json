@@ -9,7 +9,8 @@
         "dev": "concurrently \"npm:dev:backend\" \"npm:frontend\"",
         "dev:backend": "nodemon backend/index.js",
         "frontend": "vite --config vite.config.mjs",
-        "frontend:build": "vite build --config vite.config.mjs"
+        "frontend:build": "vite build --config vite.config.mjs",
+        "build": "npm run frontend:build"
     },
     "author": "",
     "license": "ISC",
