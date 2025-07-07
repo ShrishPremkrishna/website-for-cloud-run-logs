@@ -11,7 +11,7 @@
         "frontend": "vite --config vite.config.mjs",
         "frontend:build": "vite build --config vite.config.mjs",
         "setup": "./scripts/setup-service-account.sh",
-        "deploy": "./deploy.sh"
+        "deploy": "./scripts/deploy.sh"
     },
     "keywords": [
         "cloud-run",

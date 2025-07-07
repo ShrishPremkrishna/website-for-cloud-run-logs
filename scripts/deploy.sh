@@ -22,15 +22,25 @@ print_error() {
     echo -e "${RED}$1${NC}"
 }
 
+# Load environment variables from .env file
+if [ -f ".env" ]; then
+    print_status "📋 Loading environment variables from .env file..."
+    export $(cat .env | grep -v '^#' | xargs)
+else
+    print_error "❌ .env file not found"
+    echo "Please create a .env file: cp env.example .env"
+    exit 1
+fi
+
 # Check if required environment variables are set
 if [ -z "$GCP_PROJECT_ID" ]; then
-    print_error "❌ GCP_PROJECT_ID environment variable is not set"
-    echo "Please set it with: export GCP_PROJECT_ID=your-project-id"
+    print_error "❌ GCP_PROJECT_ID not found in .env file"
+    echo "Please set GCP_PROJECT_ID in your .env file"
     exit 1
 fi
 
 if [ -z "$GCP_CLOUD_RUN_SERVICE_NAME" ]; then
-    print_warning "⚠️  GCP_CLOUD_RUN_SERVICE_NAME not set, using default: 'hi'"
+    print_warning "⚠️  GCP_CLOUD_RUN_SERVICE_NAME not set in .env, using default: 'hi'"
     export GCP_CLOUD_RUN_SERVICE_NAME="hi"
 fi
 
