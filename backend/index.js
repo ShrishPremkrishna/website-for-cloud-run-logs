@@ -67,8 +67,8 @@ app.get("/logs", (req, res) => {
           }
 
           return {
-            log: plainLogEntry.textPayload,
-            timestamp: timestamp.toISOString(),
+            log: parseLogMessage(plainLogEntry.textPayload),
+            originalTimestamp: timestamp.toISOString(),
             severity: plainLogEntry.severity || "DEFAULT",
           };
         })
@@ -89,3 +89,29 @@ console.log(`Attempting to start server on port: ${PORT}`);
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
 });
+
+function parseLogMessage(message) {
+  // Regex to capture structured log parts.
+  const structuredLogRegex =
+    /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - \[(.+)\] - ([\w\.]+) - \((.+):(\d+)\) - (.*)$/;
+
+  const match = message.match(structuredLogRegex);
+
+  if (match) {
+    return {
+      type: "structured",
+      timestamp: match[1],
+      severity: match[2],
+      module: match[3],
+      file: match[4],
+      line: parseInt(match[5], 10),
+      message: match[6].trim(),
+    };
+  }
+
+  // Fallback for unstructured logs (like tracebacks or raw strings)
+  return {
+    type: "unstructured",
+    message: message,
+  };
+}
