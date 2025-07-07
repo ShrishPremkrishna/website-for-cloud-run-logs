@@ -19,8 +19,8 @@ RUN npm run frontend:build
 # Remove dev dependencies to reduce image size
 RUN npm prune --production
 
-# Expose port
-EXPOSE 3000
+# Expose port used by Cloud Run
+EXPOSE 8080
 
 # Start the application
 CMD ["npm", "start"] 

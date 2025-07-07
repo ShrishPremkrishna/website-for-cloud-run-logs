@@ -17,13 +17,16 @@ app.use(express.static(path.join(__dirname, "../dist")));
 
 const projectId = process.env.GCP_PROJECT_ID;
 const serviceName = process.env.GCP_CLOUD_RUN_SERVICE_NAME;
-const keyPath = path.resolve(process.env.GCP_KEY_PATH);
+const keyPath = process.env.GCP_KEY_PATH
+  ? path.resolve(process.env.GCP_KEY_PATH)
+  : null;
 
-// Create a new Logging client with the service account credentials
-const logging = new Logging({
-  projectId,
-  keyFilename: keyPath,
-});
+// Create a new Logging client with the service account credentials if provided
+const loggingOptions = { projectId };
+if (keyPath) {
+  loggingOptions.keyFilename = keyPath;
+}
+const logging = new Logging(loggingOptions);
 
 // Create HTTP server
 const server = http.createServer(app);
