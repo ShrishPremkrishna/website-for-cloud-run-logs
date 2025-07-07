@@ -5,16 +5,24 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hideNoNewEmails, setHideNoNewEmails] = useState(false);
+  const [severityFilter, setSeverityFilter] = useState("ALL"); // ALL, INFO, WARNING, ERROR
+  const [searchFilter, setSearchFilter] = useState("");
 
   useEffect(() => {
-    const eventSource = new EventSource("http://localhost:5001/logs");
+    // Determine WebSocket URL based on environment
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    const wsUrl = `${protocol}//${host}`;
+    
+    const ws = new WebSocket(wsUrl);
 
-    eventSource.onopen = () => {
+    ws.onopen = () => {
+      console.log("WebSocket connected");
       setLoading(false);
       setError(null);
     };
 
-    eventSource.onmessage = (event) => {
+    ws.onmessage = (event) => {
       try {
         const newLogs = JSON.parse(event.data);
         if (Array.isArray(newLogs)) {
@@ -25,16 +33,25 @@ export default function App() {
       }
     };
 
-    eventSource.onerror = (err) => {
-      console.error("EventSource failed:", err);
+    ws.onerror = (err) => {
+      console.error("WebSocket error:", err);
       setError("Connection to log stream failed. Retrying...");
       setLoading(false);
-      eventSource.close();
-      // Optional: implement a reconnect logic here
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket connection closed");
+      setError("Connection lost. Retrying...");
+      setLoading(false);
+      
+      // Attempt to reconnect after 5 seconds
+      setTimeout(() => {
+        window.location.reload();
+      }, 5000);
     };
 
     return () => {
-      eventSource.close();
+      ws.close();
     };
   }, []);
 
@@ -42,7 +59,34 @@ export default function App() {
     <div className="min-h-screen bg-gray-900 text-white font-sans">
       <header className="bg-gray-800 p-4 shadow-lg flex justify-between items-center">
         <h1 className="text-xl md:text-2xl font-bold">Cloud Run Real-Time Logs</h1>
-        <div className="flex items-center">
+        <div className="flex items-center space-x-4">
+          {/* Search Filter */}
+          <input
+            type="text"
+            placeholder="Search logs..."
+            value={searchFilter}
+            onChange={(e) => setSearchFilter(e.target.value)}
+            className="px-3 py-1.5 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+          {/* Severity Filter */}
+          <div className="flex items-center space-x-2">
+            {["ALL", "INFO", "WARNING", "ERROR"].map((level) => (
+              <button
+                key={level}
+                onClick={() => setSeverityFilter(level)}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors ${
+                  severityFilter === level
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                }`}
+              >
+                {level}
+              </button>
+            ))}
+          </div>
+
+          {/* Checkbox Filter */}
           <label className="flex items-center cursor-pointer">
             <input
               type="checkbox"
@@ -70,11 +114,35 @@ export default function App() {
           <div className="h-96 overflow-y-auto p-4 space-y-4">
             {logs.length > 0 ? (
               logs
-                .filter(
-                  (log) =>
-                    !hideNoNewEmails ||
-                    !log.log.message.includes("No new emails to process.")
-                )
+                .filter((log) => {
+                  // Filter for "No new emails"
+                  if (
+                    hideNoNewEmails &&
+                    log.log.message.includes("No new emails to process.")
+                  ) {
+                    return false;
+                  }
+
+                  // Filter by severity
+                  if (
+                    severityFilter !== "ALL" &&
+                    log.log.severity?.toUpperCase() !== severityFilter
+                  ) {
+                    return false;
+                  }
+
+                  // Filter by search text
+                  if (
+                    searchFilter &&
+                    !log.log.message
+                      .toLowerCase()
+                      .includes(searchFilter.toLowerCase())
+                  ) {
+                    return false;
+                  }
+
+                  return true;
+                })
                 .map((log, idx) => {
                   const logData = log.log; // The parsed log object is now in the 'log' property
 

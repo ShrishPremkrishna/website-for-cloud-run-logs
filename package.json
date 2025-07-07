@@ -8,7 +8,8 @@
         "start": "node backend/index.js",
         "dev": "concurrently \"npm:dev:backend\" \"npm:frontend\"",
         "dev:backend": "nodemon backend/index.js",
-        "frontend": "vite --config vite.config.mjs"
+        "frontend": "vite --config vite.config.mjs",
+        "frontend:build": "vite build --config vite.config.mjs"
     },
     "author": "",
     "license": "ISC",
@@ -20,7 +21,8 @@
         "express": "^4.19.2",
         "googleapis": "^140.0.1",
         "react": "^19.1.0",
-        "react-dom": "^19.1.0"
+        "react-dom": "^19.1.0",
+        "ws": "^8.18.0"
     },
     "devDependencies": {
         "@vitejs/plugin-react": "^4.3.1",
