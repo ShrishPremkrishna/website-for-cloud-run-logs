@@ -24,3 +24,5 @@ yarn-error.log*
 *.sln
 *.sw?
 .DS_Store
+
+service-account.json 
