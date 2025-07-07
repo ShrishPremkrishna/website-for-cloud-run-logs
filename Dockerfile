@@ -13,6 +13,9 @@ RUN npm ci
 # Copy application code
 COPY . .
 
+# Copy service account file if it exists
+COPY service-account.json* ./
+
 # Build the frontend
 RUN npm run frontend:build
 

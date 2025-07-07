@@ -1,7 +1,7 @@
 {
     "name": "cloud-run-log-viewer",
     "version": "1.0.0",
-    "description": "Secure real-time log viewer for Google Cloud Run using Node.js backend",
+    "description": "Real-time log viewer for Google Cloud Run services with a beautiful web interface",
     "main": "backend/index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
@@ -9,8 +9,18 @@
         "dev": "concurrently \"npm:dev:backend\" \"npm:frontend\"",
         "dev:backend": "nodemon backend/index.js",
         "frontend": "vite --config vite.config.mjs",
-        "frontend:build": "vite build --config vite.config.mjs"
+        "frontend:build": "vite build --config vite.config.mjs",
+        "setup": "./scripts/setup-service-account.sh",
+        "deploy": "./deploy.sh"
     },
+    "keywords": [
+        "cloud-run",
+        "logs",
+        "real-time",
+        "google-cloud",
+        "logging",
+        "websocket"
+    ],
     "author": "",
     "license": "ISC",
     "dependencies": {

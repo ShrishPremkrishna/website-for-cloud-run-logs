@@ -15,15 +15,46 @@ app.use(express.json());
 // Serve static files from the dist directory (built frontend)
 app.use(express.static(path.join(__dirname, "../dist")));
 
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({ 
+    status: "healthy", 
+    timestamp: new Date().toISOString(),
+    environment: {
+      projectId: process.env.GCP_PROJECT_ID ? "set" : "missing",
+      serviceName: process.env.GCP_CLOUD_RUN_SERVICE_NAME ? "set" : "missing",
+      keyPath: process.env.GCP_KEY_PATH ? "set" : "missing"
+    }
+  });
+});
+
+// Validate required environment variables
 const projectId = process.env.GCP_PROJECT_ID;
 const serviceName = process.env.GCP_CLOUD_RUN_SERVICE_NAME;
-const keyPath = path.resolve(process.env.GCP_KEY_PATH);
+const keyPath = process.env.GCP_KEY_PATH;
+
+if (!projectId) {
+  console.error("❌ GCP_PROJECT_ID environment variable is required");
+  process.exit(1);
+}
+
+if (!keyPath) {
+  console.error("❌ GCP_KEY_PATH environment variable is required");
+  process.exit(1);
+}
 
 // Create a new Logging client with the service account credentials
-const logging = new Logging({
-  projectId,
-  keyFilename: keyPath,
-});
+let logging;
+try {
+  logging = new Logging({
+    projectId,
+    keyFilename: path.resolve(keyPath),
+  });
+} catch (error) {
+  console.error("❌ Failed to initialize Google Cloud Logging:", error.message);
+  console.error("Please check your service account configuration");
+  process.exit(1);
+}
 
 // Create HTTP server
 const server = http.createServer(app);
